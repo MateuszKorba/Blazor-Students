@@ -1,0 +1,111 @@
+﻿@page "/students/studentDetails/{IdStudent}"
+
+@inject NavigationManager navigationManager;
+@inject IStudentService iStudentService;
+
+<head>
+    <style>
+        .left{
+            margin-top:30px;
+        }
+        .right {
+            margin-top: 30px;
+        }
+        .left {
+            margin-left: 10px;
+            float: left;
+            width: 45%;
+            text-align:left
+        }
+
+        .right {
+            float: right;
+            width: 50%;
+            position:relative;
+        }
+
+        .left table tr td {
+            text-align: right;
+        }
+
+        .left table tr td input {
+            text-align: center;
+        }
+
+        .left table tr td input {
+            margin-left: 20px;
+        }
+
+        .right table {
+            text-align: center;
+        }
+
+        .right table tr td input {
+            margin-left: 20px;
+        }
+
+        .left .backbutton {
+            background-color: #0066cc;
+            color: white;
+            border: 1px solid #0066cc;
+            margin-top: 4px;
+        }
+        .avatarImage {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h3><u>Student's details</u></h3>
+        <div class="left">
+            <table>
+                <tr>
+                    <td>First name:<br><br></td>
+                    <td><input type="text" name="First name" value="@student.FirstName" size="15" disabled><br><br></td>
+                </tr>
+                <tr>
+                    <td>Last name:<br><br></td>
+                    <td><input type="text" name="Last name" value="@student.LastName" size="15" disabled><br><br></td>
+                </tr>
+                <tr>
+                    <td>Birthdate:<br><br></td>
+                    <td><input type="text" name="Birthdate" value="@student.BirthDate.Day.@student.BirthDate.Month.@student.BirthDate.Year" size="15" disabled><br><br></td>
+                </tr>
+                <tr>
+                    <td>Studies:<br><br></td>
+                    <td><input type="text" name="Studies" value="@student.Studies" size="15" disabled ><br><br></td>
+                </tr>
+            </table>
+            <input class="backbutton" type="button" value="Return" @onclick="@(() => OnButtonClicked())"></input>
+        </div>
+        <div class="right">
+            <table align="center">
+                <tr>
+                    <td>Avatar</td>
+                    <td><input type="text" name="Avatar" value="@student.Avatar" size="15" disabled></td>
+                </tr>
+            </table><br>
+            <img src="@student.Avatar" class="avatarImage">
+        </div>
+</body>
+
+@code {
+    private Student student;
+    [Parameter]
+    public string IdStudent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        student = iStudentService.listOfStudents.Where(x => x.IdStudent == Int32.Parse(IdStudent)).First();
+    }
+
+    private void OnButtonClicked()
+    {
+        navigationManager.NavigateTo($"/students");
+    }
+}
+

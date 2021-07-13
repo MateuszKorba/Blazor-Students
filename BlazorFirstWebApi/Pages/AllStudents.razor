@@ -1,0 +1,175 @@
+﻿@page "/students"
+
+@inject NavigationManager navigationManager;
+@inject IStudentService iStudentService;
+@inject IJSRuntime ijsRuntime;
+
+<head>
+
+    <style>
+        table {
+            border-collapse: collapse;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            table-layout: fixed;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        th, td {
+            padding: 10px;
+        }
+
+        table tr {
+            background-color: white;
+            padding: .35em;
+        }
+
+        table th, table td {
+            padding: .625em;
+            text-align: center;
+        }
+        table tbody tr td img {
+            width: 50px;
+            height: 50px;
+        }
+        table tbody tr td input {
+            width:40px;
+            height:40px;
+            float:left;
+            margin-left:10px;
+        }
+
+        @@media screen and (max-width: 801px) {
+            table {
+                border: 0;
+                margin-bottom: 150px;
+            }
+
+            table thead {
+                    border: none;
+                    clip: rect(0 0 0 0);
+                    height: 1px;
+                    margin: -1px;
+                    overflow: hidden;
+                    padding: 0;
+                    position: absolute;
+                    width: 1px;
+            }
+
+            table tr {
+                    display: block;
+                    margin-bottom: .625em;
+            }
+
+            table td {
+                    display: block;
+                    font-size: .8em;
+                    text-align: right;
+            }
+
+            table td::before {
+                     content: attr(data-label);
+                     float: left;
+                     font-weight: bold;
+            }
+
+            table td:last-child {
+                     border-bottom: 0;
+                     margin-bottom: 50px
+            }
+
+            table tbody tr td input {
+                    width: 40px;
+                    height: 40px;
+                    float: left;
+                    margin-left:-10px;
+            }
+        }
+    </style>
+</head>
+
+<h3><u>Students</u></h3>
+<table>
+    <thead>
+        <tr>
+            <th style="border: 2px solid black">Avatar</th>
+            <th style="border: 2px solid black" @onclick="@(() => SortList("FirstName"))">FirstName</th>
+            <th style="border: 2px solid black" @onclick="@(() => SortList("LastName"))">LastName</th>
+            <th style="border: 2px solid black" @onclick="@(() => SortList("BirthDate"))">BirthDate</th>
+            <th style="border: 2px solid black" @onclick="@(() => SortList("Studies"))">Studies</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var student in iStudentService.listOfStudents)
+        {
+            <tr>
+                <td data-label="Avatar" style="border: 2px solid black">
+                    <img src="@student.Avatar" @onclick="@(() => OnAvatarClicked(@student.IdStudent))">
+                </td>
+                <td data-label="FirstName" style="border: 2px solid black">
+                    @student.FirstName
+                </td>
+                <td data-label="LastName" style="border: 2px solid black">
+                    @student.LastName
+                </td>
+                <td data-label="BirthDate" style="border: 2px solid black">
+                    @student.BirthDate.Day.@student.BirthDate.Month.@student.BirthDate.Year
+                </td>
+                <td data-label="Studies" style="border: 2px solid black">
+                    @student.Studies
+                </td>
+                <td>
+                    <input type="image" @onclick="@(() => DeleteStudent(@student))" src="https://findicons.com/files/icons/1262/amora/256/delete.png"></input>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private bool IsSortetAscending;
+    private string CurrentSortColumn;
+
+    protected override void OnInitialized()
+    {
+        iStudentService.SetList();
+    }
+
+    async Task DeleteStudent(Student student)
+    {
+        if (!await ijsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete the student '{student.FirstName}'?"))
+        {
+            return;
+        }
+        iStudentService.listOfStudents.Remove(student);
+    }
+
+    private void OnAvatarClicked(int IdStudent)
+    {
+        navigationManager.NavigateTo($"/students/studentDetails/{IdStudent}");
+    }
+
+    private void SortList(string columnName)
+    {
+        if (columnName != CurrentSortColumn)
+        {
+            iStudentService.listOfStudents = iStudentService.listOfStudents.OrderBy(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
+            CurrentSortColumn = columnName;
+            IsSortetAscending = true;
+        }
+        else
+        {
+            if (IsSortetAscending)
+            {
+                iStudentService.listOfStudents = iStudentService.listOfStudents.OrderByDescending(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
+            }
+            else
+            {
+                iStudentService.listOfStudents = iStudentService.listOfStudents.OrderBy(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
+            }
+            IsSortetAscending = !IsSortetAscending;
+        }
+    }
+}
